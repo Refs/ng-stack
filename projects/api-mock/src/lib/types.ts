@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Params } from '@angular/router';
 
 export abstract class ApiMockService {
   abstract getRouteGroups(): ApiMockRouteGroup[];
@@ -15,17 +16,10 @@ export class ApiMockConfig {
    */
   caseSensitiveSearch? = false;
   /**
-   * do NOT wrap content within an object with a `data` property
-   *
-   * false (default) put content directly inside the response body.
-   * true: encapsulate content in a `data` property inside the response body, `{ data: ... }`.
-   */
-  dataEncapsulation? = false;
-  /**
    * simulate latency by delaying response
    * delay (in ms) to simulate latency
    */
-  delay? = 800;
+  delay? = 500;
   /**
    * don't complain if can't find entity to delete
    * false (default) should 204 when object-to-delete not found; true: 404
@@ -69,17 +63,33 @@ export interface ObjectAny {
   [key: string]: any;
 }
 
-export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => ObjectAny[];
+export type CallbackAny = (...params: any[]) => any;
 
-export type ApiMockCallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
-  clonedData: any,
+export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+
+export type ApiMockCallbackData<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+  items?: I,
+  itemId?: string,
+  httpMethod?: HttpMethod,
   parents?: P,
-  queryParams?: ObjectAny
+  queryParams?: Params
+) => ObjectAny[];
+
+export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+  items?: I,
+  itemId?: string,
+  httpMethod?: HttpMethod,
+  parents?: P,
+  queryParams?: Params
 ) => any;
 
 export interface ApiMockRoute {
   path: string;
   callbackData: ApiMockCallbackData;
+  /**
+   * Properties for list items, that returns from `callbackData()`.
+   */
+  propertiesForList?: ObjectAny;
   callbackResponse: ApiMockCallbackResponse;
 }
 
@@ -100,12 +110,12 @@ export class RouteDryMatch {
   routes: ApiMockRouteGroup;
 }
 
-export type GetDataParams = Array<{
+export interface GetDataParam {
   cacheKey: string;
+  route: ApiMockRouteRoot | ApiMockRoute;
   primaryKey?: string;
   restId?: string;
-  route: ApiMockRouteRoot | ApiMockRoute;
-}>;
+}
 
 export class MockData {
   /**
@@ -116,11 +126,11 @@ export class MockData {
    * - If HTTP-request have `POST`, `PUT`, `PATCH` or `DELETE` method,
    * this actions will be doing with item from this array.
    */
-  writeableData: any[];
+  writeableData: ObjectAny[];
   /**
    * Array of composed objects with properties as getters (only read properties).
    *
    * - If HTTP-request have `GET` method without restId, we return this array.
    */
-  onlyreadData: any[];
+  onlyreadData: ObjectAny[];
 }

@@ -6,13 +6,13 @@ import { ApiMockService, ApiMockRouteGroup } from '@ng-stack/api-mock';
 export class SimpleService implements ApiMockService {
   getRouteGroups(): ApiMockRouteGroup[] {
     return [
-      // This array called "routes group". There may be more than one object here.
+      // This array called "routes group". There may be more than one an object.
       [{ path: 'simple/:id', callbackData: this.getCallbackData(), callbackResponse: this.getCallbackResponse() }],
     ];
   }
 
   /**
-   * Called when URL is like `/simple` or `/simple/3`
+   * Called when URL is like `/simple` or `/simple/3`.
    */
   private getCallbackData() {
     return () => [
@@ -24,7 +24,7 @@ export class SimpleService implements ApiMockService {
   }
 
   /**
-   * Returns the data (list or one item) from `getData()` callback.
+   * Returns the data (list or an one item) from `getData()` callback.
    */
   private getCallbackResponse() {
     return data => data;
