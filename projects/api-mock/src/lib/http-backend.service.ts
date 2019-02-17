@@ -2,12 +2,8 @@ import {
   HttpBackend,
   HttpErrorResponse,
   HttpEvent,
-  HttpHandler,
-  HttpHeaders,
-  HttpParams,
   HttpRequest,
   HttpResponse,
-  HttpResponseBase,
   HttpXhrBackend,
   XhrFactory,
 } from '@angular/common/http';
@@ -341,17 +337,15 @@ export class HttpBackendService implements HttpBackend {
         this.setOnlyreadData(param, writeableData);
       }
 
-      // Only parents should have writeableData.
-      const data = isLastIteration ? mockData.onlyreadData : mockData.writeableData;
       if (param.restId) {
         const primaryKey = param.primaryKey;
         const restId = param.restId;
-        const item = data.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
+        const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
           if (this.apiMockConfig.showApiMockLog) {
             const message = `Item not found with primary key "${primaryKey}" and ID "${restId}", searched in:`;
-            console.log('%c' + message, 'color: brown', data);
+            console.log('%c' + message, 'color: brown', mockData.writeableData);
           }
           return;
         }
@@ -359,7 +353,7 @@ export class HttpBackendService implements HttpBackend {
         parents.push(isLastIteration ? [item] : item);
       } else {
         // No restId at the end of an URL.
-        parents.push(data);
+        parents.push(mockData.onlyreadData);
       }
     }
 
@@ -377,8 +371,9 @@ export class HttpBackendService implements HttpBackend {
    */
   protected setOnlyreadData(param: GetDataParam, writeableData: ObjectAny[]) {
     let onlyreadData: ObjectAny[];
-    if (param.route.propertiesForList) {
-      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(param.route.propertiesForList, d));
+    const pickObj = param.route.propertiesForList;
+    if (pickObj) {
+      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
     } else {
       onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
     }
